@@ -563,34 +563,35 @@ with col_left:
         col_a, col_b = st.columns(2)
         with col_a:
             soil_type = st.selectbox("TIPE TANAH", ["Alluvial", "Chalky", "Clayey", "Laterite", "Loamy", "Peaty", "Saline", "Sandy", "Silty"], key="soil")
-            organic_matter_pct = st.number_input("BAHAN ORGANIK (%)", value=3.0, step=0.1, format="%.2f")
-            salinity_ec = st.number_input("SALINITAS (EC)", value=0.4, step=0.1, format="%.2f")
+            organic_matter_pct = st.number_input("BAHAN ORGANIK (%)", min_value=0.0, value=3.0, step=0.1, format="%.2f")
+            salinity_ec = st.number_input("SALINITAS (EC)", min_value=0.0, value=0.4, step=0.1, format="%.2f")
         with col_b:
-            bulk_density = st.number_input("BULK DENSITY (g/cm³)", value=1.3, step=0.1, format="%.2f")
-            cation_exchange_capacity = st.number_input("CEC (meq/100g)", value=15.0, step=0.1, format="%.2f")
-            buffering_capacity = st.number_input("KAPASITAS PENYANGGA", value=0.7, step=0.1, format="%.2f")
+            bulk_density = st.number_input("BULK DENSITY (g/cm³)", min_value=0.0, value=1.3, step=0.1, format="%.2f")
+            cation_exchange_capacity = st.number_input("CEC (meq/100g)", min_value=0.0, value=15.0, step=0.1, format="%.2f")
+            buffering_capacity = st.number_input("KAPASITAS PENYANGGA", min_value=0.0, value=0.7, step=0.1, format="%.2f")
     
     with tab2:
         col_a, col_b = st.columns(2)
         with col_a:
-            soil_moisture_pct = st.number_input("KELEMBABAN TANAH (%)", value=25.0, step=0.1)
+            soil_moisture_pct = st.number_input("KELEMBABAN TANAH (%)", min_value=0.0, value=25.0, step=0.1)
             soil_temp_c = st.number_input("SUHU TANAH (°C)", value=21.0, step=0.1)
             thermal_regime = st.selectbox("REJIM TERMAL", ["cold", "optimal", "heat_stress"])
         with col_b:
-            moisture_limit_dry = st.number_input("BATAS KERING (%)", value=15.0, step=0.1)
-            moisture_limit_wet = st.number_input("BATAS BASAH (%)", value=40.0, step=0.1)
+            moisture_limit_dry = st.number_input("BATAS KERING (%)", min_value=0.0, value=15.0, step=0.1)
+            moisture_limit_wet = st.number_input("BATAS BASAH (%)", min_value=0.0, value=40.0, step=0.1)
             moisture_regime = st.selectbox("REJIM KELEMBABAN", ["dry", "optimal", "waterlogged"])
-        light_intensity_par = st.number_input("INTENSITAS CAHAYA (PAR)", value=1000.0, step=10.0)
+            air_temp_c = st.number_input("SUHU UDARA (°C)", value=25.0, step=0.1)
+        light_intensity_par = st.number_input("INTENSITAS CAHAYA (PAR)", min_value=0.0, value=1000.0, step=10.0)
     
     with tab3:
         col_a, col_b = st.columns(2)
         with col_a:
             soil_ph = st.number_input("pH TANAH", value=6.5, step=0.1, format="%.1f")
-            nitrogen_ppm = st.number_input("NITROGEN (ppm)", value=100.0, step=1.0)
-            phosphorus_ppm = st.number_input("FOSFOR (ppm)", value=50.0, step=1.0)
+            nitrogen_ppm = st.number_input("NITROGEN (ppm)", min_value=0.0, value=100.0, step=1.0)
+            phosphorus_ppm = st.number_input("FOSFOR (ppm)", min_value=0.0, value=50.0, step=1.0)
         with col_b:
             ph_stress_flag = st.selectbox("STRES pH", [0, 1], format_func=lambda x: "Normal" if x == 0 else "Stres")
-            potassium_ppm = st.number_input("KALIUM (ppm)", value=100.0, step=1.0)
+            potassium_ppm = st.number_input("KALIUM (ppm)", min_value=0.0, value=100.0, step=1.0)
             nutrient_balance = st.selectbox("KESEIMBANGAN NUTRISI", ["optimal", "deficient", "excessive"])
     
     with tab4:
@@ -602,7 +603,7 @@ with col_left:
             "cation_exchange_capacity": cation_exchange_capacity, "salinity_ec": salinity_ec,
             "buffering_capacity": buffering_capacity, "soil_moisture_pct": soil_moisture_pct,
             "moisture_limit_dry": moisture_limit_dry, "moisture_limit_wet": moisture_limit_wet,
-            "moisture_regime": moisture_regime, "soil_temp_c": soil_temp_c, "air_temp_c": 25.0,
+            "moisture_regime": moisture_regime, "soil_temp_c": soil_temp_c, "air_temp_c": air_temp_c,
             "thermal_regime": thermal_regime, "light_intensity_par": light_intensity_par, "soil_ph": soil_ph,
             "ph_stress_flag": ph_stress_flag, "nitrogen_ppm": nitrogen_ppm, "phosphorus_ppm": phosphorus_ppm,
             "potassium_ppm": potassium_ppm, "nutrient_balance": nutrient_balance, "plant_category": plant_category
@@ -625,6 +626,10 @@ with col_left:
                 
             except requests.exceptions.ConnectionError:
                 st.error("🔌 Gagal terhubung ke server API. Pastikan backend berjalan di http://127.0.0.1:8000")
+            except requests.exceptions.HTTPError as e:
+                status = e.response.status_code if e.response is not None else "unknown"
+                detail = e.response.text if e.response is not None else str(e)
+                st.error(f"⚠️ API Error {status}: {detail}")
             except Exception as e:
                 st.error(f"⚠️ Error: {e}")
 

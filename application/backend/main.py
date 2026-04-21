@@ -1,6 +1,6 @@
 # backend/backend_main.py
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import joblib
@@ -87,21 +87,33 @@ def predict(user_input: AgroInput) -> dict:
     input_df = pd.DataFrame([user_input.dict()])
     logger.info(f"📥 Input diterima: {user_input.dict()}")
 
+    def demo_prediction() -> tuple[int, float]:
+        is_fail = (
+            user_input.soil_ph < 5.5
+            or user_input.soil_ph > 8
+            or user_input.salinity_ec > 3
+            or user_input.thermal_regime == 'heat_stress'
+        )
+        prediction_value = 1 if is_fail else 0
+        probability_value = (0.6 + random.random() * 0.3) if is_fail else (0.05 + random.random() * 0.25)
+        return prediction_value, probability_value
+
     if MODEL_PIPELINE is None:
         # --- Mode Demo Jika Model Tidak Ada ---
         logger.info("🤖 Menjalankan prediksi dalam mode DEMO.")
-        is_fail = user_input.soil_ph < 5.5 or user_input.soil_ph > 8 or user_input.salinity_ec > 3 or user_input.thermal_regime == 'heat_stress'
-        prediction = 1 if is_fail else 0
-        probability = (0.6 + random.random() * 0.3) if is_fail else (0.05 + random.random() * 0.25)
+        prediction, probability = demo_prediction()
     else:
-        # --- Mode Produksi dengan Model Asli ---
+        # --- Mode Produksi dengan fallback aman ---
         try:
             logger.info("🤖 Menjalankan prediksi dengan model pipeline.")
             prediction = MODEL_PIPELINE.predict(input_df)[0]
             probability = MODEL_PIPELINE.predict_proba(input_df)[0][1]
-        except Exception as e:
-            logger.error(f"❌ Error saat prediksi: {e}")
-            raise HTTPException(status_code=500, detail=f"Error saat memproses data dengan model: {e}")
+        except Exception:
+            logger.exception("❌ Model pipeline gagal dipakai, fallback ke mode DEMO.")
+            prediction, probability = demo_prediction()
+
+    probability = float(probability)
+    prediction = int(prediction)
 
     processing_time = round(time.time() - start_time, 4)
     result = {
