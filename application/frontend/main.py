@@ -1,692 +1,612 @@
-﻿# main.py
-
-import streamlit as st
 import requests
+import streamlit as st
 
-# ==============================
-# KONFIGURASI HALAMAN
-# ==============================
+
+API_URL = "http://127.0.0.1:8000/predict/"
+
+
 st.set_page_config(
     page_title="TPLANT | Agro Failure Predictor",
-    page_icon="🌿",
+    page_icon="T",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed",
 )
 
-# ==============================
-# GAYA CSS (PUTIH BERSIH + LABEL JELAS)
-# ==============================
-CLEAN_WHITE_STYLE = """
+
+STYLES = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap');
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+:root {
+  --soil: #2C1A0E;
+  --bark: #4A2E1A;
+  --copper: #B5622A;
+  --amber: #D4894A;
+  --wheat: #E8C98A;
+  --cream: #F5EDD8;
+  --fog: #EDE5D0;
+  --sage: #5C7A5A;
+  --moss: #3D5C3B;
+  --stone: #8A8070;
+  --light: #FAF6EE;
 }
 
-/* BACKGROUND PUTIH TOTAL */
-html, body, .stApp, .main, .main .block-container {
-    background-color: #ffffff !important;
-    background: #ffffff !important;
+html, body, .stApp {
+  background: var(--light);
+  color: var(--soil);
+  font-family: 'Instrument Sans', sans-serif;
 }
 
-body {
-    background-color: #ffffff !important;
-    font-family: 'Inter', sans-serif;
-    color: #1a1a2e;
-}
-
-/* Hide Streamlit default elements */
 #MainMenu, footer, header {
-    visibility: hidden;
-    display: none;
+  visibility: hidden;
+  display: none;
+}
+
+.stApp::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(181,98,42,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 80%, rgba(92,122,90,0.08) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
 }
 
 .main .block-container {
-    padding: 2rem 2rem;
-    max-width: 1300px;
-    margin: 0 auto;
-    background: #ffffff;
+  max-width: 1480px;
+  padding: 28px 24px 40px;
+  position: relative;
+  z-index: 1;
 }
 
-/* ========== HEADER ========== */
-.main-header {
-    text-align: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #e8ecef;
+.hero {
+  padding: 24px 0 26px;
+  text-align: center;
+  border-bottom: 1px solid rgba(44,26,14,0.1);
+  margin-bottom: 30px;
 }
 
 .logo-row {
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-.logo-row h1 {
-    font-size: 2.8rem;
-    font-weight: 800;
-    letter-spacing: -1px;
-    color: #1a1a2e;
-    margin: 0;
-    font-family: 'Manrope', sans-serif;
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--moss);
+  border-radius: 9px;
+  color: var(--wheat);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.88rem;
 }
 
-.logo-highlight {
-    color: #2e7d64;
+.logo-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.35rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.logo-text span {
+  color: var(--copper);
 }
 
 .tagline {
-    text-align: center;
-    color: #2e7d64;
-    font-size: 0.85rem;
-    letter-spacing: 3px;
-    margin-top: 0.5rem;
-    font-weight: 600;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--bark);
 }
 
-/* ========== URL BAR ========== */
-.url-bar {
-    background: #f8f9fa;
-    border-radius: 2rem;
-    padding: 0.5rem 1rem;
-    margin-bottom: 2rem;
-    text-align: center;
-    font-size: 0.8rem;
-    color: #6c757d;
-    font-family: monospace;
-    border: 1px solid #e9ecef;
+.tagline strong {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--copper);
 }
 
-/* ========== METRICS ROW ========== */
+.edition-badge {
+  margin-top: 8px;
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--stone);
+  border: 1px solid rgba(138,128,112,0.35);
+  padding: 5px 14px;
+  border-radius: 2px;
+}
+
 .metrics-row {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 1rem;
-    margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .metric-card {
-    background: #f8f9fa;
-    border-radius: 1rem;
-    padding: 1rem;
-    text-align: center;
-    border: 1px solid #e9ecef;
-    transition: all 0.2s;
+  background: #ffffff;
+  border: 1px solid rgba(44,26,14,0.08);
+  border-radius: 10px;
+  padding: 16px 12px;
+  text-align: center;
+  position: relative;
 }
 
-.metric-card:hover {
-    border-color: #2e7d64;
-    background: #ffffff;
-    transform: translateY(-2px);
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--copper);
+  opacity: 0.5;
 }
 
 .metric-value {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #2e7d64;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--copper);
+  line-height: 1;
+  margin-bottom: 4px;
 }
 
 .metric-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #6c757d;
-    font-weight: 500;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--stone);
 }
 
-/* ========== CARD STYLE ========== */
-.card {
-    background: #ffffff;
-    border-radius: 1rem;
-    padding: 1.2rem;
-    border: 1px solid #e9ecef;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+.panel {
+  background: #ffffff;
+  border: 1px solid rgba(44,26,14,0.08);
+  border-radius: 14px;
+  overflow: hidden;
 }
 
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid #e9ecef;
+.section-block {
+  padding: 22px 24px;
+  border-bottom: 1px solid rgba(44,26,14,0.07);
 }
 
-.card-header h3 {
-    font-size: 0.9rem;
-    font-weight: 700;
-    margin: 0;
-    color: #1a1a2e;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: var(--bark);
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
 }
 
-/* ========== TAB STYLING ========== */
-.stTabs [data-baseweb="tab-list"] {
-    gap: 0.25rem;
-    background: #f8f9fa;
-    border-radius: 0.75rem;
-    padding: 0.25rem;
-    margin-bottom: 1.2rem;
-    border: 1px solid #e9ecef;
+.section-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  background: var(--fog);
+  color: var(--stone);
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.1em;
+  margin-right: 8px;
 }
 
-.stTabs [data-baseweb="tab"] {
-    background: transparent;
-    border-radius: 0.6rem;
-    padding: 0.5rem 1rem;
-    font-weight: 600;
-    font-size: 0.75rem;
-    color: #6c757d;
+.summary-card {
+  background: #ffffff;
+  border: 1px solid rgba(44,26,14,0.08);
+  border-radius: 14px;
+  overflow: hidden;
 }
 
-.stTabs [aria-selected="true"] {
-    background: #2e7d64 !important;
-    color: white !important;
+.summary-header {
+  background: var(--soil);
+  padding: 16px 18px;
 }
 
-/* ========== LABEL STYLE - YANG INI PENTING! ========== */
-/* Label harus terlihat jelas, warna gelap */
-label, .stSelectbox label, .stNumberInput label {
-    font-weight: 700 !important;
-    font-size: 0.75rem !important;
-    color: #1e293b !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    margin-bottom: 0.5rem !important;
-    display: block !important;
+.summary-header-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wheat);
 }
 
-/* Label saat hover atau focus tetap gelap */
-label:hover, .stSelectbox label:hover, .stNumberInput label:hover {
-    color: #2e7d64 !important;
+.summary-body {
+  padding: 14px 18px;
 }
 
-/* ========== FORM INPUTS ========== */
-.stSelectbox > div {
-    margin-bottom: 0.75rem;
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(44,26,14,0.08);
 }
 
-.stSelectbox > div > div {
-    border-radius: 0.5rem;
-    border: 1px solid #dee2e6;
-    background: #ffffff !important;
-    min-height: 42px;
+.summary-row:last-child {
+  border-bottom: none;
 }
 
-.stSelectbox > div > div > div {
-    background: #ffffff !important;
-    color: #1a1a2e !important;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
+.summary-key {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
 }
 
-/* Dropdown list container */
-div[data-baseweb="popover"] {
-    background: #ffffff !important;
-    border: 1px solid #dee2e6 !important;
-    border-radius: 0.5rem !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+.summary-val {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--bark);
 }
 
-div[data-baseweb="popover"] > div {
-    background: #ffffff !important;
+.landing-card {
+  background: #ffffff;
+  border: 1px solid rgba(44,26,14,0.08);
+  border-radius: 14px;
+  padding: 24px;
+  margin: 0 auto 18px;
 }
 
-div[role="listbox"] {
-    background: #ffffff !important;
-    border: none !important;
+.landing-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  color: var(--bark);
+  margin-bottom: 10px;
 }
 
-div[role="option"] {
-    background: #ffffff !important;
-    color: #1a1a2e !important;
-    padding: 0.5rem 0.75rem !important;
-    font-size: 0.85rem !important;
-    cursor: pointer !important;
+.landing-desc {
+  font-size: 0.95rem;
+  color: var(--stone);
+  line-height: 1.7;
 }
 
-div[role="option"]:hover {
-    background: #f0fdf4 !important;
-    color: #2e7d64 !important;
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
 }
 
-div[role="option"][aria-selected="true"] {
-    background: #e8f5e9 !important;
-    color: #2e7d64 !important;
-    font-weight: 600 !important;
+.feature-item {
+  background: var(--fog);
+  border: 1px solid rgba(44,26,14,0.08);
+  border-radius: 10px;
+  padding: 12px;
 }
 
-/* Number inputs */
-.stNumberInput > div > div > input {
-    border-radius: 0.5rem;
-    border: 1px solid #dee2e6;
-    padding: 0.6rem 0.75rem;
-    font-size: 0.85rem;
-    background: #ffffff;
-    color: #1a1a2e;
-    min-height: 42px;
+.feature-item h4 {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bark);
+  margin-bottom: 6px;
 }
 
-.stNumberInput > div > div > input:focus,
-.stSelectbox > div > div:focus-within {
-    border-color: #2e7d64;
-    box-shadow: 0 0 0 2px rgba(46,125,100,0.1);
-    outline: none;
+.feature-item p {
+  font-size: 0.82rem;
+  color: var(--stone);
+  line-height: 1.5;
 }
 
-/* ========== SUMMARY LIST - 2 COLUMNS ========== */
-.summary-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem 1rem;
+.result-card {
+  margin-top: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(44,26,14,0.08);
+  border-radius: 14px;
+  overflow: hidden;
 }
 
-.summary-list li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid #f0f2f4;
-    font-size: 0.85rem;
+.result-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(44,26,14,0.08);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
-.summary-label {
-    font-weight: 700;
-    color: #475569;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+.result-body {
+  padding: 14px 18px 18px;
 }
 
-.summary-value {
-    font-weight: 700;
-    color: #1a1a2e;
-    font-size: 0.85rem;
+.risk-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--stone);
+  margin-bottom: 8px;
 }
 
-/* ========== PREDICT BUTTON ========== */
+.risk-bar-bg {
+  background: var(--fog);
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.risk-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--sage), var(--copper));
+}
+
+.risk-value {
+  margin-top: 8px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: var(--copper);
+  text-align: center;
+}
+
+.risk-desc {
+  margin-top: 3px;
+  font-size: 0.8rem;
+  color: var(--stone);
+  text-align: center;
+  font-style: italic;
+}
+
 .stButton > button {
-    background: #2e7d64;
-    color: white;
-    border: none;
-    padding: 0.8rem;
-    font-size: 0.9rem;
-    font-weight: 700;
-    border-radius: 0.75rem;
-    width: 100%;
-    transition: all 0.2s;
-    cursor: pointer;
-    margin-top: 0.5rem;
+  width: 100%;
+  background: var(--moss);
+  color: var(--cream);
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.04rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .stButton > button:hover {
-    background: #1a5d4a;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(46,125,100,0.2);
+  background: var(--sage);
 }
 
-/* ========== RESULT CARD ========== */
-.result-card {
-    background: #f8f9fa;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    margin-top: 1rem;
-    border: 1px solid #e9ecef;
+label, .stNumberInput label, .stSelectbox label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+  font-weight: 500;
 }
 
-.result-header {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    margin-bottom: 0.8rem;
+.stSelectbox > div > div,
+.stNumberInput > div > div > input,
+input[readonly] {
+  background: var(--fog) !important;
+  border: 1px solid rgba(44,26,14,0.12) !important;
+  border-radius: 8px !important;
+  color: var(--soil) !important;
 }
 
-.result-icon {
-    font-size: 2rem;
+input[readonly] {
+  font-family: 'DM Mono', monospace;
+  color: var(--moss) !important;
 }
 
-.result-title {
-    font-size: 1rem;
-    font-weight: 700;
-    margin: 0;
-    color: #1a1a2e;
-}
-
-.result-subtitle {
-    font-size: 0.7rem;
-    color: #6c757d;
-}
-
-.prob-section {
-    margin-top: 0.8rem;
-}
-
-.prob-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    margin-bottom: 0.3rem;
-    color: #475569;
-}
-
-.progress-bar {
-    background: #e9ecef;
-    border-radius: 1rem;
-    height: 8px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    background: #2e7d64;
-    height: 100%;
-    border-radius: 1rem;
-    transition: width 0.3s ease;
-}
-
-.progress-fill.danger {
-    background: #dc3545;
-}
-
-.prob-percent {
-    text-align: right;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-top: 0.25rem;
-    color: #1a1a2e;
-}
-
-/* Info Message */
-.info-message {
-    background: #f8f9fa;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    text-align: center;
-    font-size: 0.8rem;
-    color: #6c757d;
-    margin-top: 1rem;
-    border: 1px solid #e9ecef;
-}
-
-/* Divider */
-.custom-divider {
-    height: 1px;
-    background: #e9ecef;
-    margin: 1.5rem 0;
-}
-
-/* ========== PRODUCT SECTIONS ========== */
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin: 1.5rem 0 1rem 0;
-}
-
-.section-header h3 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1a1a2e;
-}
-
-.section-link {
-    color: #2e7d64;
-    font-size: 0.7rem;
-    font-weight: 500;
-    cursor: pointer;
-}
-
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-}
-
-.product-card {
-    background: #f8f9fa;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    text-align: center;
-    border: 1px solid #e9ecef;
-    transition: all 0.2s;
-}
-
-.product-card:hover {
-    border-color: #2e7d64;
-    transform: translateY(-3px);
-    background: #ffffff;
-}
-
-.product-icon {
-    font-size: 1.8rem;
-}
-
-.product-name {
-    font-weight: 700;
-    font-size: 0.85rem;
-    margin: 0.5rem 0 0.25rem;
-    color: #1a1a2e;
-}
-
-.product-price {
-    font-size: 0.8rem;
-    color: #2e7d64;
-    font-weight: 600;
-}
-
-.old-price {
-    text-decoration: line-through;
-    color: #adb5bd;
-    font-size: 0.7rem;
-    margin-left: 0.3rem;
-    font-weight: normal;
-}
-
-.product-sub {
-    font-size: 0.7rem;
-    color: #6c757d;
-}
-
-/* Responsive */
 @media (max-width: 900px) {
-    .product-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .metrics-row {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    .summary-list {
-        grid-template-columns: 1fr;
-    }
+  .metrics-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 """
 
-st.markdown(CLEAN_WHITE_STYLE, unsafe_allow_html=True)
+st.markdown(STYLES, unsafe_allow_html=True)
 
-API_URL = "http://127.0.0.1:8000/predict/"
+if "show_prediction_form" not in st.session_state:
+  st.session_state["show_prediction_form"] = False
 
-# ==============================
-# HEADER
-# ==============================
-st.markdown("""
-<div class="main-header">
+st.markdown(
+  """
+  <div class="hero">
     <div class="logo-row">
-        <h1>TPLANT</h1>
-        <h1><span class="logo-highlight">TPLANT</span></h1>
+      <div class="logo-icon">TP</div>
+      <div class="logo-text">T<span>PLANT</span></div>
     </div>
-    <div class="logo-row">
-        <h1>PLANT<span class="logo-highlight">TREE</span>CREATE</h1>
-        <h1>A<span class="logo-highlight">GREEN</span>FUTURE</h1>
+    <div class="tagline">Plant Tree, <strong>Create a Green Future</strong></div>
+    <div class="edition-badge">Agro Failure Predictor · Aurora Edition</div>
+  </div>
+  """,
+  unsafe_allow_html=True,
+)
+
+if not st.session_state["show_prediction_form"]:
+  st.markdown(
+    """
+    <div class="landing-card">
+      <div class="landing-title">Selamat Datang di TPLANT</div>
+      <div class="landing-desc">
+        Sistem ini membantu mengestimasi risiko kegagalan pertumbuhan tanaman berdasarkan parameter tanah,
+        iklim, dan nutrisi. Input yang kamu isi akan diproses oleh model machine learning sehingga kamu bisa
+        mendapatkan indikasi risiko secara cepat sebelum mengambil keputusan budidaya.
+      </div>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <h4>Input Terstruktur</h4>
+          <p>Form disusun sesuai fitur model: fisika tanah, iklim, kimia-nutrisi, dan kategori tanaman.</p>
+        </div>
+        <div class="feature-item">
+          <h4>Prediksi Cepat</h4>
+          <p>Hasil memberikan probabilitas risiko kegagalan untuk mendukung evaluasi kondisi lahan.</p>
+        </div>
+        <div class="feature-item">
+          <h4>Selaras Dataset</h4>
+          <p>Semua pilihan kategorikal di form disesuaikan dengan skema dataset dan model backend.</p>
+        </div>
+      </div>
     </div>
-    <div class="tagline">🌿 AGRO FAILURE PREDICTOR | AURORA EDITION</div>
-</div>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True,
+  )
+  if st.button("Mulai Prediksi", use_container_width=True):
+    st.session_state["show_prediction_form"] = True
+    st.rerun()
+else:
+  st.markdown(
+      """
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-value">21</div><div class="metric-label">Features</div></div>
+        <div class="metric-card"><div class="metric-value">9</div><div class="metric-label">Soil Types</div></div>
+        <div class="metric-card"><div class="metric-value">3</div><div class="metric-label">Plants</div></div>
+        <div class="metric-card"><div class="metric-value">RF</div><div class="metric-label">Algorithm</div></div>
+        <div class="metric-card"><div class="metric-value">v4.0</div><div class="metric-label">API Version</div></div>
+      </div>
+      """,
+      unsafe_allow_html=True,
+  )
 
-# ==============================
-# METRICS
-# ==============================
-st.markdown("""
-<div class="metrics-row">
-    <div class="metric-card"><div class="metric-value">21</div><div class="metric-label">FEATURES</div></div>
-    <div class="metric-card"><div class="metric-value">9</div><div class="metric-label">SOIL TYPES</div></div>
-    <div class="metric-card"><div class="metric-value">3</div><div class="metric-label">PLANTS</div></div>
-    <div class="metric-card"><div class="metric-value">RF</div><div class="metric-label">ALGORITHM</div></div>
-    <div class="metric-card"><div class="metric-value">v4.0</div><div class="metric-label">API</div></div>
-</div>
-""", unsafe_allow_html=True)
+  top_left, top_right = st.columns([0.85, 0.15])
+  with top_right:
+    if st.button("Kembali", use_container_width=True):
+      st.session_state["show_prediction_form"] = False
+      st.rerun()
 
-# ==============================
-# DUA KOLOM UTAMA
-# ==============================
-col_left, col_right = st.columns([1.2, 0.8], gap="medium")
+  st.markdown('<div class="panel">', unsafe_allow_html=True)
 
-with col_left:
-    st.markdown("""
-    <div class="card">
-        <div class="card-header">
-            <h3>🌱 PARAMETER TANAH & IKLIM</h3>
-        </div>
+  st.markdown('<div class="section-block"><div class="section-title"><span class="section-num">01</span>Fisika Tanah</div></div>', unsafe_allow_html=True)
+  a1, a2 = st.columns(2)
+  with a1:
+    soil_type = st.selectbox(
+      "Tipe Tanah",
+      ["Alluvial", "Chalky", "Clayey", "Laterite", "Loamy", "Peaty", "Saline", "Sandy", "Silty"],
+      key="soil_type",
+    )
+    organic_matter_pct = st.number_input("Bahan Organik (%)", min_value=0.0, value=3.0, step=0.1, format="%.2f")
+    salinity_ec = st.number_input("Salinitas (EC)", min_value=0.0, value=0.4, step=0.1, format="%.2f")
+  with a2:
+    bulk_density = st.number_input("Bulk Density (g/cm3)", min_value=0.0, value=1.3, step=0.05, format="%.2f")
+    cation_exchange_capacity = st.number_input("CEC (meq/100g)", min_value=0.0, value=15.0, step=0.5, format="%.2f")
+    buffering_capacity = st.number_input("Kapasitas Penyangga", min_value=0.0, value=0.7, step=0.05, format="%.2f")
+
+  st.markdown('<div class="section-block"><div class="section-title"><span class="section-num">02</span>Iklim dan Kelembaban</div></div>', unsafe_allow_html=True)
+  b1, b2 = st.columns(2)
+  with b1:
+    soil_moisture_pct = st.number_input("Kelembaban Tanah (%)", min_value=0.0, value=25.0, step=1.0, format="%.2f")
+    soil_temp_c = st.number_input("Suhu Tanah (C)", value=21.0, step=0.5, format="%.2f")
+    air_temp_c = st.number_input("Suhu Udara (C)", value=25.0, step=0.5, format="%.2f")
+    thermal_regime = st.selectbox("Rejim Termal", ["cold", "optimal", "heat_stress"], key="thermal_regime")
+  with b2:
+    moisture_limit_dry = st.number_input("Batas Kering (%)", min_value=0.0, value=15.0, step=1.0, format="%.2f")
+    moisture_limit_wet = st.number_input("Batas Basah (%)", min_value=0.0, value=40.0, step=1.0, format="%.2f")
+    light_intensity_par = st.number_input("Intensitas Cahaya (PAR)", min_value=0.0, value=1000.0, step=50.0, format="%.2f")
+    moisture_regime = st.selectbox("Rejim Kelembaban", ["dry", "optimal", "waterlogged"], key="moisture_regime")
+
+  st.markdown('<div class="section-block"><div class="section-title"><span class="section-num">03</span>pH dan Nutrisi</div></div>', unsafe_allow_html=True)
+  d1, d2 = st.columns(2)
+  with d1:
+    soil_ph = st.number_input("pH Tanah", value=6.5, step=0.1, format="%.1f")
+    nitrogen_ppm = st.number_input("Nitrogen (ppm)", min_value=0.0, value=100.0, step=5.0, format="%.2f")
+    phosphorus_ppm = st.number_input("Fosfor (ppm)", min_value=0.0, value=50.0, step=5.0, format="%.2f")
+  with d2:
+    potassium_ppm = st.number_input("Kalium (ppm)", min_value=0.0, value=100.0, step=5.0, format="%.2f")
+    ph_stress_flag = st.selectbox("Stres pH", [0, 1], format_func=lambda x: "Normal" if x == 0 else "Stres", key="ph_stress_flag")
+    nutrient_balance = st.selectbox("Keseimbangan Nutrisi", ["optimal", "deficient", "excessive"], key="nutrient_balance")
+
+  st.markdown('<div class="section-block"><div class="section-title"><span class="section-num">04</span>Tanaman</div></div>', unsafe_allow_html=True)
+  plant_category = st.selectbox("Kategori Tanaman", ["cereal", "legume", "vegetable"], key="plant_category")
+
+  st.markdown('</div>', unsafe_allow_html=True)
+
+  st.markdown(
+    f"""
+    <div class="summary-card" style="margin-top:14px;">
+      <div class="summary-header"><div class="summary-header-title">Ringkasan Input</div></div>
+      <div class="summary-body">
+      <div class="summary-row"><span class="summary-key">Tipe Tanah</span><span class="summary-val">{soil_type}</span></div>
+      <div class="summary-row"><span class="summary-key">Kategori</span><span class="summary-val">{plant_category}</span></div>
+      <div class="summary-row"><span class="summary-key">pH Tanah</span><span class="summary-val">{soil_ph:.1f}</span></div>
+      <div class="summary-row"><span class="summary-key">Kelembaban</span><span class="summary-val">{soil_moisture_pct:.1f}%</span></div>
+      <div class="summary-row"><span class="summary-key">Suhu Tanah</span><span class="summary-val">{soil_temp_c:.1f} C</span></div>
+      <div class="summary-row"><span class="summary-key">Rejim Termal</span><span class="summary-val">{thermal_regime}</span></div>
+      <div class="summary-row"><span class="summary-key">Rejim Kelembaban</span><span class="summary-val">{moisture_regime}</span></div>
+      <div class="summary-row"><span class="summary-key">Nitrogen</span><span class="summary-val">{nitrogen_ppm:.1f} ppm</span></div>
+      <div class="summary-row"><span class="summary-key">Fosfor</span><span class="summary-val">{phosphorus_ppm:.1f} ppm</span></div>
+      <div class="summary-row"><span class="summary-key">Kalium</span><span class="summary-val">{potassium_ppm:.1f} ppm</span></div>
+      </div>
     </div>
-    """, unsafe_allow_html=True)
-    
-    tab1, tab2, tab3, tab4 = st.tabs(["🪨 Fisika Tanah", "🌡️ Iklim & Kelembaban", "🧪 Kimia & Nutrisi", "🌱 Tanaman"])
-    
-    with tab1:
-        col_a, col_b = st.columns(2)
-        with col_a:
-            soil_type = st.selectbox("TIPE TANAH", ["Alluvial", "Chalky", "Clayey", "Laterite", "Loamy", "Peaty", "Saline", "Sandy", "Silty"], key="soil")
-            organic_matter_pct = st.number_input("BAHAN ORGANIK (%)", min_value=0.0, value=3.0, step=0.1, format="%.2f")
-            salinity_ec = st.number_input("SALINITAS (EC)", min_value=0.0, value=0.4, step=0.1, format="%.2f")
-        with col_b:
-            bulk_density = st.number_input("BULK DENSITY (g/cm³)", min_value=0.0, value=1.3, step=0.1, format="%.2f")
-            cation_exchange_capacity = st.number_input("CEC (meq/100g)", min_value=0.0, value=15.0, step=0.1, format="%.2f")
-            buffering_capacity = st.number_input("KAPASITAS PENYANGGA", min_value=0.0, value=0.7, step=0.1, format="%.2f")
-    
-    with tab2:
-        col_a, col_b = st.columns(2)
-        with col_a:
-            soil_moisture_pct = st.number_input("KELEMBABAN TANAH (%)", min_value=0.0, value=25.0, step=0.1)
-            soil_temp_c = st.number_input("SUHU TANAH (°C)", value=21.0, step=0.1)
-            thermal_regime = st.selectbox("REJIM TERMAL", ["cold", "optimal", "heat_stress"])
-        with col_b:
-            moisture_limit_dry = st.number_input("BATAS KERING (%)", min_value=0.0, value=15.0, step=0.1)
-            moisture_limit_wet = st.number_input("BATAS BASAH (%)", min_value=0.0, value=40.0, step=0.1)
-            moisture_regime = st.selectbox("REJIM KELEMBABAN", ["dry", "optimal", "waterlogged"])
-            air_temp_c = st.number_input("SUHU UDARA (°C)", value=25.0, step=0.1)
-        light_intensity_par = st.number_input("INTENSITAS CAHAYA (PAR)", min_value=0.0, value=1000.0, step=10.0)
-    
-    with tab3:
-        col_a, col_b = st.columns(2)
-        with col_a:
-            soil_ph = st.number_input("pH TANAH", value=6.5, step=0.1, format="%.1f")
-            nitrogen_ppm = st.number_input("NITROGEN (ppm)", min_value=0.0, value=100.0, step=1.0)
-            phosphorus_ppm = st.number_input("FOSFOR (ppm)", min_value=0.0, value=50.0, step=1.0)
-        with col_b:
-            ph_stress_flag = st.selectbox("STRES pH", [0, 1], format_func=lambda x: "Normal" if x == 0 else "Stres")
-            potassium_ppm = st.number_input("KALIUM (ppm)", min_value=0.0, value=100.0, step=1.0)
-            nutrient_balance = st.selectbox("KESEIMBANGAN NUTRISI", ["optimal", "deficient", "excessive"])
-    
-    with tab4:
-        plant_category = st.selectbox("KATEGORI TANAMAN", ["cereal", "legume", "vegetable"], label_visibility="visible")
-    
-    if st.button("🚀 JALANKAN PREDIKSI AI", use_container_width=True):
-        payload = {
-            "soil_type": soil_type, "bulk_density": bulk_density, "organic_matter_pct": organic_matter_pct,
-            "cation_exchange_capacity": cation_exchange_capacity, "salinity_ec": salinity_ec,
-            "buffering_capacity": buffering_capacity, "soil_moisture_pct": soil_moisture_pct,
-            "moisture_limit_dry": moisture_limit_dry, "moisture_limit_wet": moisture_limit_wet,
-            "moisture_regime": moisture_regime, "soil_temp_c": soil_temp_c, "air_temp_c": air_temp_c,
-            "thermal_regime": thermal_regime, "light_intensity_par": light_intensity_par, "soil_ph": soil_ph,
-            "ph_stress_flag": ph_stress_flag, "nitrogen_ppm": nitrogen_ppm, "phosphorus_ppm": phosphorus_ppm,
-            "potassium_ppm": potassium_ppm, "nutrient_balance": nutrient_balance, "plant_category": plant_category
-        }
-        
-        with st.spinner("🧠 Menganalisis dengan model Random Forest..."):
-            try:
-                response = requests.post(API_URL, json=payload, timeout=10)
-                response.raise_for_status()
-                result = response.json()
-                
-                is_fail = result['prediction'] == 1
-                prob = round(result['probability_failure'] * 100)
-                
-                st.session_state['prediction_result'] = {
-                    'is_fail': is_fail,
-                    'prob': prob
-                }
-                st.rerun()
-                
-            except requests.exceptions.ConnectionError:
-                st.error("🔌 Gagal terhubung ke server API. Pastikan backend berjalan di http://127.0.0.1:8000")
-            except requests.exceptions.HTTPError as e:
-                status = e.response.status_code if e.response is not None else "unknown"
-                detail = e.response.text if e.response is not None else str(e)
-                st.error(f"⚠️ API Error {status}: {detail}")
-            except Exception as e:
-                st.error(f"⚠️ Error: {e}")
+    """,
+    unsafe_allow_html=True,
+  )
 
-with col_right:
-    st.markdown(f"""
-    <div class="card">
-        <div class="card-header">
-            <h3>📋 RINGKASAN INPUT</h3>
-        </div>
-        <ul class="summary-list">
-            <li><span class="summary-label">TIPE TANAH</span><span class="summary-value">{soil_type}</span></li>
-            <li><span class="summary-label">KATEGORI TANAMAN</span><span class="summary-value">{plant_category.upper()}</span></li>
-            <li><span class="summary-label">pH TANAH</span><span class="summary-value">{soil_ph}</span></li>
-            <li><span class="summary-label">KELEMBABAN TANAH</span><span class="summary-value">{soil_moisture_pct}%</span></li>
-            <li><span class="summary-label">SUHU TANAH</span><span class="summary-value">{soil_temp_c}°C</span></li>
-            <li><span class="summary-label">REJIM KELEMBABAN</span><span class="summary-value">{moisture_regime}</span></li>
-            <li><span class="summary-label">REJIM TERMAL</span><span class="summary-value">{thermal_regime}</span></li>
-            <li><span class="summary-label">NITROGEN</span><span class="summary-value">{nitrogen_ppm} ppm</span></li>
-            <li><span class="summary-label">FOSFOR</span><span class="summary-value">{phosphorus_ppm} ppm</span></li>
-            <li><span class="summary-label">KALIUM</span><span class="summary-value">{potassium_ppm} ppm</span></li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    if 'prediction_result' in st.session_state:
-        res = st.session_state['prediction_result']
-        icon = "⚠️" if res['is_fail'] else "✅"
-        title = "Potensi Gagal Tanam Tinggi" if res['is_fail'] else "Kondisi Pertumbuhan Optimal"
-        subtitle = "Segera lakukan tindakan korektif" if res['is_fail'] else "Parameter tanah dan iklim dalam batas aman"
-        fill_class = "danger" if res['is_fail'] else ""
-        
-        st.markdown(f"""
-        <div class="result-card">
-            <div class="result-header">
-                <div class="result-icon">{icon}</div>
-                <div>
-                    <div class="result-title">{title}</div>
-                    <div class="result-subtitle">{subtitle}</div>
-                </div>
-            </div>
-            <div class="prob-section">
-                <div class="prob-label">PROBABILITAS KEGAGALAN</div>
-                <div class="progress-bar">
-                    <div class="progress-fill {fill_class}" style="width: {res['prob']}%;"></div>
-                </div>
-                <div class="prob-percent">{res['prob']}%</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="info-message">
-            📊 Klik 'Jalankan Prediksi AI' untuk melihat hasil analisis.
-        </div>
-        """, unsafe_allow_html=True)
+  if st.button("Jalankan Prediksi", use_container_width=True):
+    payload = {
+      "soil_type": soil_type,
+      "bulk_density": bulk_density,
+      "organic_matter_pct": organic_matter_pct,
+      "cation_exchange_capacity": cation_exchange_capacity,
+      "salinity_ec": salinity_ec,
+      "buffering_capacity": buffering_capacity,
+      "soil_moisture_pct": soil_moisture_pct,
+      "moisture_limit_dry": moisture_limit_dry,
+      "moisture_limit_wet": moisture_limit_wet,
+      "moisture_regime": moisture_regime,
+      "soil_temp_c": soil_temp_c,
+      "air_temp_c": air_temp_c,
+      "thermal_regime": thermal_regime,
+      "light_intensity_par": light_intensity_par,
+      "soil_ph": soil_ph,
+      "ph_stress_flag": ph_stress_flag,
+      "nitrogen_ppm": nitrogen_ppm,
+      "phosphorus_ppm": phosphorus_ppm,
+      "potassium_ppm": potassium_ppm,
+      "nutrient_balance": nutrient_balance,
+      "plant_category": plant_category,
+    }
 
-# ==============================
-# DIVIDER
-# ==============================
-st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
+    with st.spinner("Menganalisis parameter..."):
+      try:
+        response = requests.post(API_URL, json=payload, timeout=15)
+        response.raise_for_status()
+        result = response.json()
+        st.session_state["prediction_result"] = result
+      except requests.exceptions.ConnectionError:
+        st.error("Gagal terhubung ke API backend. Pastikan server berjalan di http://127.0.0.1:8000")
+      except requests.exceptions.HTTPError as e:
+        status = e.response.status_code if e.response is not None else "unknown"
+        detail = e.response.text if e.response is not None else str(e)
+        st.error(f"API Error {status}: {detail}")
+      except Exception as e:
+        st.error(f"Error: {e}")
+
+  if "prediction_result" in st.session_state:
+    pred = st.session_state["prediction_result"]
+    risk_pct = max(0.0, min(100.0, float(pred.get("probability_failure", 0.0)) * 100.0))
+    risk_desc = "Risiko rendah" if risk_pct < 35 else "Risiko sedang" if risk_pct < 65 else "Risiko tinggi"
+
+    st.markdown(
+      f"""
+      <div class="result-card">
+        <div class="result-head">Hasil Analisis</div>
+        <div class="result-body">
+        <div class="risk-label">Tingkat Risiko Kegagalan</div>
+        <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:{risk_pct:.1f}%"></div></div>
+        <div class="risk-value">{risk_pct:.1f}%</div>
+        <div class="risk-desc">{risk_desc}</div>
+        </div>
+      </div>
+      """,
+      unsafe_allow_html=True,
+    )
