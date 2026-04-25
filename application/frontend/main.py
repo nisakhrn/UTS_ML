@@ -178,9 +178,9 @@ FORM_CSS = """
 * { font-family: 'Instrument Sans', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
 h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
 
-/* MAIN CONTAINER */
+/* MAIN CONTAINER — samakan dengan landing: 20px 70px */
 [data-testid="stMain"] {
-    padding: 40px 50px !important;
+    padding: 20px 70px !important;
     background: var(--dark-bg) !important;
 }
 
@@ -188,15 +188,16 @@ h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
 .stSelectbox > div > div {
   background: rgba(212, 149, 93, 0.2) !important;
   border: 1.2px solid rgba(205, 145, 92, 0.7) !important;
-  border-radius: 8px !important;
+  border-radius: 7px !important;
   color: #F3D9AE !important;
-  padding: 11px 14px !important;
-  font-size: 0.85rem !important;
+  padding: 7px 10px !important;
+  font-size: 0.76rem !important;
 }
 
 .stSelectbox > div > div:focus-within {
   border-color: var(--copper) !important;
-  box-shadow: 0 0 0 2px rgba(181, 98, 42, 0.15) !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .stSelectbox svg { color: var(--stone) !important; }
@@ -204,10 +205,31 @@ h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
 /* BaseWeb select internals (fix selected text invisibility) */
 .stSelectbox [data-baseweb="select"] > div {
   min-height: 44px !important;
-  height: 54px !important;   /* tambah ini */
+  height: 44px !important;
   background: rgba(212, 149, 93, 0.2) !important;
   border: 1.2px solid rgba(205, 145, 92, 0.7) !important;
-  border-radius: 8px !important;
+  border-radius: 7px !important;
+  box-shadow: none !important;
+  outline: none !important;
+  overflow: visible !important;
+}
+
+.stSelectbox [data-baseweb="select"] > div > div {
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important;
+  min-height: 100% !important;
+}
+
+.stSelectbox [data-baseweb="select"] [class*="valueContainer"] {
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important;
+  min-height: 44px !important;
+  padding-left: 12px !important;
+  padding-right: 8px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 .stSelectbox [data-baseweb="select"] span,
@@ -216,6 +238,35 @@ h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
   color: #FFE8C4 !important;
   -webkit-text-fill-color: #FFE8C4 !important;
   opacity: 1 !important;
+}
+
+.stSelectbox [data-baseweb="select"] [class*="singleValue"],
+.stSelectbox [data-baseweb="select"] [class*="placeholder"] {
+  color: #FFE8C4 !important;
+  -webkit-text-fill-color: #FFE8C4 !important;
+  opacity: 1 !important;
+  font-size: 0.76rem !important;
+  line-height: 44px !important;
+  position: static !important;
+  display: block !important;
+  height: 44px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  top: unset !important;
+  bottom: unset !important;
+  left: unset !important;
+  right: unset !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+.stSelectbox [data-baseweb="select"] input {
+  color: #FFE8C4 !important;
+  -webkit-text-fill-color: #FFE8C4 !important;
+  line-height: 1.2 !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* Dropdown menu list/options for all selects */
@@ -242,15 +293,17 @@ div[role="option"]:hover {
 }
 
 .stNumberInput > div > div {
-  height: 44px !important;
+  display: flex !important;
   align-items: center !important;
   background: rgba(212,149,93,0.22) !important;
   border: 1.2px solid rgba(205,145,92,0.7) !important;
-  border-radius: 8px !important;
-  height: 54px !important;
+  border-radius: 7px !important;
+  height: 40px !important;
   overflow: hidden !important;
   padding: 0 !important;
   gap: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .stNumberInput input {
@@ -262,7 +315,7 @@ div[role="option"]:hover {
   color: #FFE8C4 !important;
   -webkit-text-fill-color: #FFE8C4 !important;
   font-family: 'DM Mono', monospace !important;
-  font-size: 0.82rem !important;
+  font-size: 0.78rem !important;
   letter-spacing: 0.04em !important;
   text-align: center !important;
   height: 100% !important;
@@ -279,9 +332,23 @@ div[role="option"]:hover {
   width: auto !important;
   min-width: auto !important;
   height: 100% !important;
-  background: transparent !important;     /* HAPUS background kotaknya */
+  background: transparent !important;
   border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  gap: 0 !important;
+  box-shadow: none !important;
+  pointer-events: auto !important;
   inset: auto !important;
+}
+
+.stNumberInput > div > div > div:last-child > div {
+  background: transparent !important;
+  border: none !important;
+  height: 100% !important;
+  display: flex !important;
+  padding: 0 !important;
 }
 
 .stNumberInput button {
@@ -289,17 +356,21 @@ div[role="option"]:hover {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 28px !important;
-  min-width: 28px !important;
-  max-width: 28px !important;
+  width: 24px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
   height: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
-  background: rgba(181,98,42,0.15) !important;
+  background: transparent !important;
   border: none !important;
-  border-left: 1px solid rgba(205,145,92,0.3) !important;
+  border-left: 1px solid rgba(205,145,92,0.4) !important;
+  border-radius: 0 !important;
   color: #FFE8C4 !important;
   cursor: pointer !important;
+  transition: background 0.15s !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
 }
 
 .stNumberInput button:first-of-type {
@@ -309,52 +380,36 @@ div[role="option"]:hover {
 }
 
 .stNumberInput button:hover {
-  background: rgba(181,98,42,0.4) !important;
+  background: rgba(181,98,42,0.25) !important;
 }
 
 .stNumberInput button svg {
-  width: 10px !important;
-  height: 10px !important;
+  width: 8px !important;
+  height: 8px !important;
   display: block !important;
-  flex-shrink: 0 !important;
 }
 
 .stNumberInput button > * {
-  width: 10px !important;
-  height: 10px !important;
-  font-size: 10px !important;
-  line-height: 1 !important;
-}
-
-/* Target path dan rect dalam SVG */
-.stNumberInput button svg path,
-.stNumberInput button svg rect,
-.stNumberInput button svg polyline {
-  transform: scale(0.6) !important;
-  transform-origin: center !important;
-}
-
-.stNumberInput button > div,
-.stNumberInput button p,
-.stNumberInput button span {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  width: 8px !important;
+  height: 8px !important;
   line-height: 1 !important;
 }
 
 /* LABELS */
 label, .stNumberInput label, .stSelectbox label {
   font-family: 'DM Mono', monospace !important;
-  font-size: 0.65rem !important;
-  letter-spacing: 0.14em !important;
+  font-size: 0.5rem !important;
+  letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
   color: var(--wheat) !important;
   font-weight: 600 !important;
   margin-bottom: 8px !important;
   display: block !important;
+}
+
+.stSelectbox,
+.stNumberInput {
+  margin-bottom: 10px !important;
 }
 
 /* BUTTONS */
@@ -386,7 +441,7 @@ label, .stNumberInput label, .stSelectbox label {
 }
 
 /* COLUMN SPACING */
-[data-testid="stHorizontalBlock"] { gap: 18px !important; }
+[data-testid="stHorizontalBlock"] { gap: 12px !important; }
 
 /* SPINNER */
 .stSpinner > div { border-top-color: var(--copper) !important; }
@@ -400,15 +455,15 @@ p { color: var(--cream) !important; }
   background: rgba(26, 15, 7, 0.45) !important;
   border: 1px solid rgba(181, 98, 42, 0.5) !important;
   border-radius: 4px !important;
-  min-height: 72px !important;        /* WAS: 118px — terlalu tinggi */
-  padding: 10px 12px !important; 
+  min-height: 64px !important;
+  padding: 12px 16px !important;
   text-align: center !important;
   position: relative !important;
   overflow: visible !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
-  gap: 4px !important;    
+  gap: 4px !important;
   transition: transform 0.2s, box-shadow 0.2s !important;
 }
 
@@ -428,9 +483,9 @@ p { color: var(--cream) !important; }
   border: 1px solid rgba(181, 98, 42, 0.45) !important;
   border-radius: 4px !important;
   background: rgba(26, 15, 7, 0.4) !important;
-  padding: 7px 12px !important;
-  margin-top: 18px !important;
-  margin-bottom: 22px !important;
+  padding: 5px 10px !important;
+  margin-top: 16px !important;
+  margin-bottom: 24px !important;
 }
 
 .section-chip .section-num {
@@ -455,7 +510,7 @@ p { color: var(--cream) !important; }
 
 .metric-value {
   font-family: 'Cormorant Garamond', serif !important;
-  font-size: 1.3rem !important;
+  font-size: 1.1rem !important;
   font-weight: 600 !important;
   color: var(--copper) !important;
   line-height: 1 !important;
@@ -464,7 +519,7 @@ p { color: var(--cream) !important; }
 
 .metric-label {
   font-family: 'DM Mono', monospace !important;
-  font-size: 0.58rem !important;
+  font-size: 0.52rem !important;
   line-height: 1.4 !important;
   letter-spacing: 0.11em !important;
   text-transform: uppercase !important;
@@ -473,34 +528,34 @@ p { color: var(--cream) !important; }
 
 @media (max-width: 1200px) {
   [data-testid="stMain"] {
-    padding: 28px 28px !important;
+    padding: 20px 40px !important;
   }
 
   .metric-card {
-    min-height: 104px !important;
+    min-height: 56px !important;
   }
 
   .metric-value {
-    font-size: 1.75rem !important;
+    font-size: 1rem !important;
   }
 
   .metric-label {
-    font-size: 0.54rem !important;
+    font-size: 0.5rem !important;
     letter-spacing: 0.1em !important;
   }
 }
 
 @media (max-width: 768px) {
   [data-testid="stMain"] {
-    padding: 18px 14px !important;
+    padding: 14px 16px !important;
   }
 
   .form-panel {
-    padding: 18px 14px !important;
+    padding: 14px 12px !important;
   }
 
   .summary-row {
-    padding: 10px 12px !important;
+    padding: 8px 10px !important;
   }
 }
 
@@ -674,7 +729,7 @@ p { color: var(--cream) !important; }
 hr {
   border: none !important;
   border-top: 1px solid rgba(181, 98, 42, 0.15) !important;
-  margin: 24px 0 !important;
+  margin: 14px 0 !important;
 }
 """
 
@@ -935,7 +990,7 @@ def render_form():
 
     # ── HEADER ──
     st.markdown("""
-      <div style="text-align: center; margin-bottom: 68px; padding-bottom: 30px; border-bottom: 1px solid rgba(181, 98, 42, 0.15);">
+      <div style="text-align: center; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(181, 98, 42, 0.15);">
         <div style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 600; letter-spacing: 0.08em; color: #E8C98A;">T<span style="color: #B5622A;">PLANT</span></div>
       </div>
     """, unsafe_allow_html=True)
@@ -953,7 +1008,7 @@ def render_form():
     with col5:
         st.markdown(f'<div class="metric-card"><div class="metric-value">v4.0</div><div class="metric-label">API Version</div></div>', unsafe_allow_html=True)
 
-    st.markdown('<div style="height: 44px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="height: 32px;"></div>', unsafe_allow_html=True)
 
     # ── MAIN GRID ──
     left_col, right_col = st.columns([1, 0.35], gap="medium")
@@ -1030,7 +1085,7 @@ def render_form():
         </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div style="height: 56px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="height: 24px;"></div>', unsafe_allow_html=True)
 
     # ── BUTTONS DI BAWAH ──
     spacer_left, col_btn1, col_btn2, spacer_right = st.columns([1.35, 1, 1, 1.35])
